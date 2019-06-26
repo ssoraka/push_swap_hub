@@ -127,7 +127,7 @@ void ft_print_list2(t_elem *begin, char stek)
 	int i;
 
 	i = 0;
-	printf(" %c:  ", stek);
+	printf(" %c:\t", stek);
 	if (begin == NULL)
 	{
 		printf("NULL\n");
@@ -346,7 +346,7 @@ int ft_is_not_number(char **str)
 	char *tmp;
 
 	i = 0;
-	while (**str == '0' && (*str + 1) && ft_isdigit(*str + 1))
+	while (**str == '0' && (*str + 1) && ft_isdigit(*(*str + 1)))
 		(*str)++;
 	tmp = *str;
 	if (!ft_isdigit(*tmp))
@@ -503,17 +503,17 @@ int		main(int argc, char **argv)
 	while (cmd && cmd[i])
 	{
 		printf("%d__%s\n", i, cmd[i]);
-		if (ft_strcmp(cmd[i], "sa") == 0)
+		if (ft_strcmp(cmd[i], "sa") == 0 || ft_strcmp(cmd[i], "ss") == 0)
 			ft_swap_list(arra, 0);
-		if (ft_strcmp(cmd[i], "sb") == 0)
+		if (ft_strcmp(cmd[i], "sb") == 0 || ft_strcmp(cmd[i], "ss") == 0)
 			ft_swap_list(arrb, 0);
-		if (ft_strcmp(cmd[i], "ra") == 0)
+		if (ft_strcmp(cmd[i], "ra") == 0 || ft_strcmp(cmd[i], "rr") == 0)
 			ft_round_list(&arra, 0);
-		if (ft_strcmp(cmd[i], "rb") == 0)
+		if (ft_strcmp(cmd[i], "rb") == 0 || ft_strcmp(cmd[i], "rr") == 0)
 			ft_round_list(&arrb, 0);
-		if (ft_strcmp(cmd[i], "rrb") == 0)
+		if (ft_strcmp(cmd[i], "rrb") == 0 || ft_strcmp(cmd[i], "rrr") == 0)
 			ft_revers_round_list(&arrb, 0);
-		if (ft_strcmp(cmd[i], "rra") == 0)
+		if (ft_strcmp(cmd[i], "rra") == 0 || ft_strcmp(cmd[i], "rrr") == 0)
 			ft_revers_round_list(&arra, 0);
 		if (ft_strcmp(cmd[i], "pa") == 0)
 			ft_push_list(&arrb, &arra, 0);
@@ -525,8 +525,8 @@ int		main(int argc, char **argv)
 	}
 
 
-	ft_print_list2(arra, 'a');
-	ft_print_list2(arrb, 'b');
+	ft_print_list(arra, 'a');
+	ft_print_list(arrb, 'b');
 
 	printf("строк - %d\n", i);
 	if (ft_is_sorted(arra) && !arrb)

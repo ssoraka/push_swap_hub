@@ -269,21 +269,21 @@ typedef struct		s_arr
 typedef struct		s_elem
 {
 	int				value;
-	int				number;
+	int				medium_value;
 	int				min_value;
 	struct s_elem	*next;
 	struct s_elem	*prev;
-	struct s_arr	*arr;
 }					t_elem;
 
 
-t_elem	*ft_create_elem(int value, int min_value)
+t_elem	*ft_create_elem(int value, int min_value, int medium_value)
 {
 	t_elem *tmp;
 
 	tmp = (t_elem *)ft_memalloc(sizeof(t_elem));
 	tmp->value = value;
 	tmp->min_value = min_value;
+	tmp->medium_value = medium_value;
 	return (tmp);
 }
 
@@ -306,22 +306,65 @@ int ft_find_min_value(int *arr, int argc)
 
 
 
+int		ft_pubble_int_sort(int *argv, int argc)
+{
+	int		i;
+	int		j;
+	int		temp;
+
+	j = 0;
+	while (j < argc)
+	{
+		i = 0;
+		while (i < argc - 1)
+		{
+			if (argv[i] > argv[i + 1])
+			{
+				temp = argv[i + 1];
+				argv[i + 1] = argv[i];
+				argv[i] = temp;
+			}
+			i++;
+		}
+		j++;
+	}
+	return (0);
+}
+
+
+
+int ft_find_medium_value(int *arr, int argc)
+{
+	int *sorted;
+	int medium;
+
+	sorted = (int *)malloc(sizeof(int) * argc);
+	ft_memcpy((void *)sorted, (void *)arr, sizeof(int) * argc);
+	ft_pubble_int_sort(sorted, argc);
+	medium = sorted[argc / 2 + 5];
+	//printf("%d\n", medium);
+	free(sorted);
+	return (medium);
+}
+
 t_elem	*ft_create_lists(int *arr, int argc)
 {
 	int i;
 	int min_value;
+	int medium_value;
 	t_elem *begin;
 	t_elem *tmp;
 
 	if (!argc)
 		return (NULL);
 	min_value = ft_find_min_value(arr, argc);
-	begin = ft_create_elem(arr[0], min_value);
+	medium_value = ft_find_medium_value(arr, argc);
+	begin = ft_create_elem(arr[0], min_value, medium_value);
 	tmp = begin;
 	i = 1;
 	while (i < argc)
 	{
-		tmp->next = ft_create_elem(arr[i], min_value);
+		tmp->next = ft_create_elem(arr[i], min_value, medium_value);
 		tmp->next->prev = tmp;
 		tmp = tmp->next;
 		i++;
@@ -394,7 +437,7 @@ int ft_need_round_sorted(t_elem *begin)
 }
 */
 
-int ft_need_round_for_sort(t_elem *begin)
+int ft_need_rotate_for_sort(t_elem *begin)
 {
 	int first_value;
 	int round_count;
@@ -422,6 +465,7 @@ int ft_need_round_for_sort(t_elem *begin)
 }
 
 
+
 void ft_swap_list(t_elem *begin, char stek)
 {
 	int temp;
@@ -442,7 +486,7 @@ void ft_round_list(t_elem **begin, char stek)
 {
 	if (*begin && (*begin)->next)
 		*begin = (*begin)->next;
-	if (stek == 'a' || stek == 'b')
+	if (stek == 'a' || stek == 'b' || stek == 'r')
 		printf("r%c\n", stek);
 }
 
@@ -450,7 +494,7 @@ void ft_revers_round_list(t_elem **begin, char stek)
 {
 	if (*begin && (*begin)->prev)
 		*begin = (*begin)->prev;
-	if (stek == 'a' || stek == 'b')
+	if (stek == 'a' || stek == 'b' || stek == 'r')
 		printf("rr%c\n", stek);
 }
 
@@ -540,9 +584,9 @@ t_elem *ft_bubble_sort(t_elem *arr)
 			ft_revers_round_list(&arr, 'a');
 		else
 		{
-			if (ft_need_round_for_sort(arr) > 0)
+			if (ft_need_rotate_for_sort(arr) > 0)
 				ft_round_list(&arr, 'a');
-			else if (ft_need_round_for_sort(arr) < 0)
+			else if (ft_need_rotate_for_sort(arr) < 0)
 				ft_revers_round_list(&arr, 'a');
 			else
 				ft_round_list(&arr, 'a');
@@ -555,35 +599,218 @@ t_elem *ft_bubble_sort(t_elem *arr)
 }
 
 
+int ft_count_of_element_in_stek(t_elem *begin)
+{
+	int count;
+	int first_value;
+
+	count = 0;
+	if (begin == NULL)
+		return (0);
+	first_value = begin->value;
+	while (count == 0 || (begin && first_value != begin->value))
+	{
+		begin = begin->next;
+		count++;
+	}
+	return (count);
+}
+
+
+int ft_min_count_of_rounding(t_elem *begin, int value)
+{
+	int round_count;
+	int list_count;
+
+	round_count = 0;
+	if (begin == NULL)
+		return (0);
+	if (begin->next == NULL)
+		return (0);
+	list_count = ft_count_of_element_in_stek(begin);
+	while (round_count < list_count)
+	{
+		if (value == begin->value)
+			break ;
+		begin = begin->next;
+		round_count++;
+	}
+	if (round_count > list_count / 2)
+		round_count = round_count - list_count;
+	return (round_count);
+}
+
+
+int ft_min_count_of_round_for_insert(t_elem *begin, int value)
+{
+	int round_count;
+	int list_count;
+
+	round_count = 0;
+	list_count = ft_count_of_element_in_stek(begin);
+	while (round_count < list_count)
+	{
+		if (begin->next == NULL)
+			break ;
+		if (value < begin->value && value > begin->prev->value)
+			break ;
+		if (value > begin->prev->value && begin->value == begin->min_value)
+			break ;
+		begin = begin->next;
+		round_count++;
+	}
+	if (round_count > list_count / 2)
+		round_count = round_count - list_count;
+	return (round_count);
+}
+
+
+
+int ft_min_count_of_rounding_steks(t_elem *arra, t_elem *arrb)
+{
+	int round_count;
+	int list_countb;
+	int round_values[3];
+	int min_values[3];
+	t_elem *begin;
+
+	round_count = 0;
+	begin = arrb;
+	list_countb = ft_count_of_element_in_stek(arrb);
+	min_values[0] = 0;
+	min_values[1] = 0;
+	min_values[2] = 2147483646;
+	while (arrb && round_count < list_countb)
+	{
+		round_values[0] = ft_min_count_of_rounding(begin, arrb->value);
+		round_values[1] = ft_min_count_of_round_for_insert(arra, arrb->value);
+		round_values[2] = ft_abs(round_values[0]) + ft_abs(round_values[1]);
+		if (round_values[2] < min_values[2])
+			ft_memcpy((void *)min_values, (void *)round_values, 12);
+		arrb = arrb->next;
+		round_count++;
+	}
+	if (ft_znak(min_values[0]) == ft_znak(min_values[0]))
+		return (ft_znak(min_values[0]) + ft_znak(min_values[0]));
+	return (ft_znak(min_values[0]));
+}
+
+
+int ft_is_num_are_sorted(t_elem *begin)
+{
+	int value;
+	int sorted;
+
+	value = begin->value;
+	sorted = begin->min_value;
+	while (begin->value != sorted)
+		begin = begin->next;
+	while (begin->value != value)
+	{
+		if (sorted < begin->value)
+			sorted = begin->value;
+		begin = begin->next;
+	}
+	if (sorted <= begin->value)
+		return(1);
+	return(0);
+}
+
+/*
+while (arra && ft_need_rotate_for_sort(arra) == 0)
+{
+	if (arra->value == arra->min_value || ft_is_num_are_sorted(arra))
+	{
+		if (arra->next->value < arra->value && arra->next->value > arra->prev->value)
+		{
+			ft_swap_list(arra, 'a');
+			ft_round_list(&arra, 'a');
+		}
+		ft_round_list(&arra, 'a');
+	}
+	if (arra->next->value < arra->value && arra->next->value > arra->prev->value)
+		ft_swap_list(arra, 'a');
+
+	ft_push_list(&arra, &arrb, 'b');
+}
+*/
+
+
 t_elem *ft_vstavka_sort(t_elem *arra, t_elem *arrb)
 {
-	while (arra && arra->next && arra->next->next != arra)
+	/*
+	int flag;
+	flag = 0;
+	while (arra && ft_need_rotate_for_sort(arra) == 0)
+	{
+		if (arra->value == arra->min_value)
+		{
+			ft_round_list(&arra, 'a');
+			flag = 1;
+		}
+		if (flag == 1 && arra->value > arra->prev->value)
+			ft_round_list(&arra, 'a');
+
+		ft_push_list(&arra, &arrb, 'b');
+	}*/
+
+	while (arra && ft_need_rotate_for_sort(arra) == 0)
+	{
+		if (arra->value == arra->min_value || ft_is_num_are_sorted(arra))
+		{
+			//if (arra->next->value < arra->value && arra->next->value > arra->prev->value)
+			//{
+			//	ft_swap_list(arra, 'a');
+			//	ft_round_list(&arra, 'a');
+			//}
+			ft_round_list(&arra, 'a');
+		}
+		ft_push_list(&arra, &arrb, 'b');
+		if (arrb->value < arra->medium_value)
+			ft_round_list(&arrb, 'b');
+	}
+
+
+
+
+
+/*	while (arra && arra->next && arra->next->next != arra)
 	{
 		if (arra->value == arra->min_value)
 			ft_round_list(&arra, 'a');
 		ft_push_list(&arra, &arrb, 'b');
 	}
-	//ft_print_list(arra, 'a');
+*/	//ft_print_list(arra, 'a');
 	//ft_print_list(arrb, 'b');
 	while (arrb)
 	{
-		if (arrb->value > arra->value && arra->value != arra->min_value)
+		if (ft_min_count_of_rounding_steks(arra, arrb) == 2)
+		{
+			ft_round_list(&arrb, 'r');
+			ft_round_list(&arra, 0);
+		}
+		else if (ft_min_count_of_rounding_steks(arra, arrb) == -2)
+		{
+			ft_revers_round_list(&arrb, 'r');
+			ft_revers_round_list(&arra, 0);
+		}
+		else if (ft_min_count_of_rounding_steks(arra, arrb) == 1)
+			ft_round_list(&arrb, 'b');
+		else if (ft_min_count_of_rounding_steks(arra, arrb) == -1)
+			ft_revers_round_list(&arrb, 'b');
+		else if (ft_min_count_of_round_for_insert(arra, arrb->value) > 0)
 			ft_round_list(&arra, 'a');
-		else if (arrb->value < arra->value && arrb->value < arra->prev->value)
+		else if (ft_min_count_of_round_for_insert(arra, arrb->value) < 0)
 			ft_revers_round_list(&arra, 'a');
-		else if (arrb->value > arra->value && arra->value == arra->min_value)
-			ft_revers_round_list(&arra, 'a');
-		if (arrb->value < arra->value && arrb->value > arra->prev->value)
-			ft_push_list(&arrb, &arra, 'a');
-		else if (arrb->value > arra->prev->value && arra->value == arra->min_value)
+		else if (ft_min_count_of_round_for_insert(arra, arrb->value) == 0)
 			ft_push_list(&arrb, &arra, 'a');
 	}
 
 	while (arra->value != arra->min_value)
 	{
-		if (ft_need_round_for_sort(arra) > 0)
+		if (ft_need_rotate_for_sort(arra) > 0)
 			ft_round_list(&arra, 'a');
-		else if (ft_need_round_for_sort(arra) < 0)
+		else if (ft_need_rotate_for_sort(arra) < 0)
 			ft_revers_round_list(&arra, 'a');
 	}
 
@@ -747,6 +974,7 @@ int		main(int argc, char **argv)
 
 	arra = ft_create_lists(arr, argc);
 	arrb = NULL;
+
 
 
 	//char *str = ft_strdup("222\t ");
