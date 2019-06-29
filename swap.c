@@ -256,14 +256,6 @@ int		main(int argc, char **argv)
 }
 */
 
-typedef struct		s_arr
-{
-	int				*arr;
-	int				count;
-	int				first_elem;
-	int				min_elem;
-	int				max_elem;
-}					t_arr;
 
 
 typedef struct		s_elem
@@ -271,19 +263,26 @@ typedef struct		s_elem
 	int				value;
 	int				medium_value;
 	int				min_value;
+	int				max_value;
 	struct s_elem	*next;
 	struct s_elem	*prev;
 }					t_elem;
 
 
-t_elem	*ft_create_elem(int value, int min_value, int medium_value)
+void *ft_error(int errnum);
+void ft_list_del(t_elem *begin);
+
+t_elem	*ft_create_elem(int value, int min_value, int medium_value, int max_value)
 {
 	t_elem *tmp;
 
 	tmp = (t_elem *)ft_memalloc(sizeof(t_elem));
+	if (!tmp)
+		return (NULL);
 	tmp->value = value;
 	tmp->min_value = min_value;
 	tmp->medium_value = medium_value;
+	tmp->max_value = max_value;
 	return (tmp);
 }
 
@@ -304,6 +303,22 @@ int ft_find_min_value(int *arr, int argc)
 	return(min_value);
 }
 
+
+int ft_find_max_value(int *arr, int argc)
+{
+	int max_value;
+	int i;
+
+	i = 1;
+	max_value = arr[0];
+	while (i < argc)
+	{
+		if (arr[i] > max_value)
+			max_value = arr[i];
+		i++;
+	}
+	return(max_value);
+}
 
 
 int		ft_pubble_int_sort(int *argv, int argc)
@@ -341,7 +356,10 @@ int ft_find_medium_value(int *arr, int argc)
 	sorted = (int *)malloc(sizeof(int) * argc);
 	ft_memcpy((void *)sorted, (void *)arr, sizeof(int) * argc);
 	ft_pubble_int_sort(sorted, argc);
-	medium = sorted[argc / 2 + 5];
+	if (argc > 10)
+		medium = sorted[argc / 2 + 3];
+	else
+		medium = sorted[argc / 2];
 	//printf("%d\n", medium);
 	free(sorted);
 	return (medium);
@@ -350,21 +368,23 @@ int ft_find_medium_value(int *arr, int argc)
 t_elem	*ft_create_lists(int *arr, int argc)
 {
 	int i;
-	int min_value;
-	int medium_value;
+	int value[3];
 	t_elem *begin;
 	t_elem *tmp;
 
-	if (!argc)
-		return (NULL);
-	min_value = ft_find_min_value(arr, argc);
-	medium_value = ft_find_medium_value(arr, argc);
-	begin = ft_create_elem(arr[0], min_value, medium_value);
+	value[0] = ft_find_min_value(arr, argc);
+	value[1] = ft_find_medium_value(arr, argc);
+	value[2] = ft_find_max_value(arr, argc);
+	begin = ft_create_elem(arr[0], value[0], value[1], value[2]);
 	tmp = begin;
 	i = 1;
 	while (i < argc)
 	{
-		tmp->next = ft_create_elem(arr[i], min_value, medium_value);
+		if (!tmp || !(tmp->next = ft_create_elem(arr[i], value[0], value[1], value[2])))
+		{
+			ft_list_del(begin);
+			return (NULL);
+		}
 		tmp->next->prev = tmp;
 		tmp = tmp->next;
 		i++;
@@ -684,7 +704,12 @@ int ft_min_count_of_rounding_steks(t_elem *arra, t_elem *arrb)
 	{
 		round_values[0] = ft_min_count_of_rounding(begin, arrb->value);
 		round_values[1] = ft_min_count_of_round_for_insert(arra, arrb->value);
-		round_values[2] = ft_abs(round_values[0]) + ft_abs(round_values[1]);
+
+		if (ft_znak(round_values[0]) == ft_znak(round_values[1]))
+			round_values[2] = ft_max(ft_abs(round_values[0]), ft_abs(round_values[1]));
+		else
+			round_values[2] = ft_abs(round_values[0]) + ft_abs(round_values[1]);
+
 		if (round_values[2] < min_values[2])
 			ft_memcpy((void *)min_values, (void *)round_values, 12);
 		arrb = arrb->next;
@@ -700,18 +725,23 @@ int ft_is_num_are_sorted(t_elem *begin)
 {
 	int value;
 	int sorted;
+	int delta;
 
 	value = begin->value;
 	sorted = begin->min_value;
+	delta = ((begin->max_value - begin->min_value) / 100) * 6;
+	if (delta < 10)
+		delta = 10;
 	while (begin->value != sorted)
 		begin = begin->next;
 	while (begin->value != value)
 	{
-		if (sorted < begin->value)
+		if (sorted < begin->value && sorted > (begin->value - delta))// && (begin->value - 100000) + 100000 == begin->value)
+		//if (sorted < begin->value)
 			sorted = begin->value;
 		begin = begin->next;
 	}
-	if (sorted <= begin->value)
+	if (sorted <= begin->value && sorted > (begin->value - delta))
 		return(1);
 	return(0);
 }
@@ -765,9 +795,14 @@ t_elem *ft_vstavka_sort(t_elem *arra, t_elem *arrb)
 			//}
 			ft_round_list(&arra, 'a');
 		}
-		ft_push_list(&arra, &arrb, 'b');
-		if (arrb->value < arra->medium_value)
-			ft_round_list(&arrb, 'b');
+		else
+		{
+			ft_push_list(&arra, &arrb, 'b');
+			if (arrb->value < arra->medium_value && arrb->next && arrb->next->next != arrb)
+				ft_round_list(&arrb, 'b');
+		}
+		//ft_print_list(arra, 'a');
+		//ft_print_list(arrb, 'b');
 	}
 
 
@@ -781,6 +816,7 @@ t_elem *ft_vstavka_sort(t_elem *arra, t_elem *arrb)
 		ft_push_list(&arra, &arrb, 'b');
 	}
 */	//ft_print_list(arra, 'a');
+	//printf("%d_%d_%d\n", arra->max_value, arra->min_value, arra->max_value - arra->min_value);
 	//ft_print_list(arrb, 'b');
 	while (arrb)
 	{
@@ -839,10 +875,11 @@ char **open_and_read_command(char *name)
 
 
 
-void ft_error(void)
+void *ft_error(int errnum)
 {
 	ft_putstr_fd("Error\n", 2);
 	exit (0);
+	return (NULL);
 }
 
 
@@ -903,23 +940,22 @@ int ft_str_not_int_number(char *str)
 }
 
 
-int *ft_arr_int_from_str(char **argv, int *argc)
+int *ft_arr_int_from_str(char **argv, int argc)
 {
 	int *arr;
 	int i;
 
 	i = 0;
-	while (argv[i])
+	while (i < argc)
 	{
 		if (ft_str_not_int_number(argv[i]))
-			ft_error();
+			return (NULL);
 		i++;
 	}
-	if (!(arr = (int *)malloc(4 * i)))
-		ft_error();
-	*argc = i;
+	if (!(arr = (int *)malloc(4 * (argc))))
+		return (NULL);
 	i = 0;
-	while (argv[i])
+	while (i < argc)
 	{
 		arr[i] = ft_atoi(argv[i]);
 		i++;
@@ -950,32 +986,101 @@ int ft_have_repeat_num(int *arr, int argc)
 
 
 
+void ft_list_del(t_elem *begin)
+{
+	int list_count;
+	int i;
+	t_elem *tmp;
+
+	i = 1;
+	list_count = ft_count_of_element_in_stek(begin);
+	while (i < list_count)
+	{
+		tmp = begin;
+		begin = begin->next;
+		tmp->next = NULL;
+		free(tmp);
+		tmp = NULL;
+		i++;
+	}
+}
+
+
+int *ft_valid_arr(int *argc, char **argv)
+{
+	int *arr;
+	int create_argv;
+
+	create_argv = 0;
+	argv++;
+	if (*argc == 2)
+	{
+		argv = ft_strsplit(*argv, ' ');
+		*argc = 0;
+		create_argv = TRUE;
+		while (argv[*argc])
+			(*argc)++;
+	}
+	else
+		(*argc)--;
+	arr = ft_arr_int_from_str(argv, *argc);
+	if (create_argv)
+		ft_str_arr_free(argv);
+	return (arr);
+}
+
+
+
+
+
+
+
 int		main(int argc, char **argv)
 {
 	//int arr[] = {10,3,4,5,9,13,0,6,78,8};
 	//argc = 10;
 
 
-	char **arv;
+	//char **arv;
 	int *arr;
-	arv = open_and_read_command("arr.txt");
-	arr = ft_arr_int_from_str(arv, &argc);
-	if (ft_have_repeat_num(arr, argc))
-		ft_error();
-
-/*
-	int arr[] = {2,1,3,6,5,8};
-	argc = 6;
-*/
-
 	t_elem *arra;
 	t_elem *arrb;
+	//arv = open_and_read_command("arr.txt");
 
+	//printf("%d\n", argc);
+	//printf("%s\n", argv[1]);
+
+	if (argc == 1)
+		return (0);
+	if (!(arr = ft_valid_arr(&argc, argv)))
+		ft_error(0);
+	/*
+	if (argc == 2)
+	{
+		argv = ft_strsplit(argv[], ' ');
+		argc = 0;
+	}
+	else
+	{
+		argv++;
+		argc--;
+	}
+	if (!(arr = ft_arr_int_from_str(argv, &argc)))
+		ft_error(0);
+	*/
+	if (ft_have_repeat_num(arr, argc))
+	{
+		free(arr);
+		ft_error(0);
+	}
 
 	arra = ft_create_lists(arr, argc);
 	arrb = NULL;
 
+	free(arr);
 
+	if (!arra)
+		ft_error(0);
 
 	//char *str = ft_strdup("222\t ");
 	//printf("%s__%d__%d\n", str, ft_str_not_int_number(str), atoi(str));
@@ -990,7 +1095,12 @@ int		main(int argc, char **argv)
 	//arra = ft_bubble_sort(arra);
 	arra = ft_vstavka_sort(arra, arrb);
 
-//	ft_print_list(arra, 'a');
-//	ft_print_list(arrb, 'b');
+
+	//ft_print_list(arra, 'a');
+	//ft_print_list(arrb, 'b');
+
+	ft_list_del(arra);
+	ft_list_del(arrb);
+
 	return (0);
 }

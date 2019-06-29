@@ -76,19 +76,23 @@ int ft_find_min_value(int *arr, int argc)
 t_elem	*ft_create_lists(int *arr, int argc)
 {
 	int i;
-	int min_value;
+	int value[3];
 	t_elem *begin;
 	t_elem *tmp;
 
-	if (!argc)
-		return (NULL);
-	min_value = ft_find_min_value(arr, argc);
-	begin = ft_create_elem(arr[0], min_value);
+	value[0] = ft_find_min_value(arr, argc);
+	value[1] = ft_find_medium_value(arr, argc);
+	value[2] = ft_find_max_value(arr, argc);
+	begin = ft_create_elem(arr[0], value[0], value[1], value[2]);
 	tmp = begin;
 	i = 1;
 	while (i < argc)
 	{
-		tmp->next = ft_create_elem(arr[i], min_value);
+		if (!tmp || !(tmp->next = ft_create_elem(arr[i], value[0], value[1], value[2])))
+		{
+			ft_list_del(begin);
+			return (NULL);
+		}
 		tmp->next->prev = tmp;
 		tmp = tmp->next;
 		i++;
@@ -330,7 +334,7 @@ char **open_and_read_command(char *name)
 	char buf[1001];
 
 	str = NULL;
-	file = open(name, O_RDONLY);
+	file = 0;//open(name, O_RDONLY);
 	while ((red = read(file, buf, 1000)))
 	{
 		buf[red] = '\0';
@@ -397,37 +401,38 @@ int ft_str_not_int_number(char *str)
 }
 
 
-void ft_error(void)
+void *ft_error(int errnum)
 {
 	ft_putstr_fd("Error\n", 2);
 	exit (0);
+	return (NULL);
 }
 
 
-int *ft_arr_int_from_str(char **argv, int *argc)
+int *ft_arr_int_from_str(char **argv, int argc)
 {
 	int *arr;
 	int i;
 
 	i = 0;
-	while (argv[i])
+	while (i < argc)
 	{
-		printf("%s\n",argv[i] );
 		if (ft_str_not_int_number(argv[i]))
-			ft_error();
+			return (NULL);
 		i++;
 	}
-	if (!(arr = (int *)malloc(4 * i)))
-		ft_error();
-	*argc = i;
+	if (!(arr = (int *)malloc(4 * (argc))))
+		return (NULL);
 	i = 0;
-	while (argv[i])
+	while (i < argc)
 	{
 		arr[i] = ft_atoi(argv[i]);
 		i++;
 	}
 	return (arr);
 }
+
+
 
 int ft_have_repeat_num(int *arr, int argc)
 {
@@ -455,16 +460,71 @@ int ft_not_valid_command(char **commands)
 	while (*commands)
 	{
 		if (ft_strcmp(*commands, "ra") && ft_strcmp(*commands, "rb") &&
-		ft_strcmp(*commands, "sa") && ft_strcmp(*commands, "sb") &&
-		ft_strcmp(*commands, "ss") && ft_strcmp(*commands, "pa") &&
-		ft_strcmp(*commands, "pb") && ft_strcmp(*commands, "rra") &&
-		ft_strcmp(*commands, "rrb") && ft_strcmp(*commands, "rrr") &&
-		ft_strcmp(*commands, "rr"))
+				ft_strcmp(*commands, "sa") && ft_strcmp(*commands, "sb") &&
+				ft_strcmp(*commands, "ss") && ft_strcmp(*commands, "pa") &&
+				ft_strcmp(*commands, "pb") && ft_strcmp(*commands, "rra") &&
+				ft_strcmp(*commands, "rrb") && ft_strcmp(*commands, "rrr") &&
+				ft_strcmp(*commands, "rr"))
 			return (1);
 		(commands)++;
 	}
 	return (0);
 }
+
+
+int *ft_valid_arr(int *argc, char **argv)
+{
+	int *arr;
+	int create_argv;
+
+	create_argv = 0;
+	argv++;
+	if (*argc == 2)
+	{
+		argv = ft_strsplit(*argv, ' ');
+		*argc = 0;
+		create_argv = TRUE;
+		while (argv[*argc])
+			(*argc)++;
+	}
+	else
+		(*argc)--;
+	arr = ft_arr_int_from_str(argv, *argc);
+	if (create_argv)
+		ft_str_arr_free(argv);
+	return (arr);
+}
+
+
+
+void ft_use_instruction(char **cmd, t_elem **arra, t_elem **arrb)
+{
+	int i;
+
+	i = 0;
+	while (cmd && cmd[i])
+	{
+		if (ft_strcmp(cmd[i], "sa") == 0 || ft_strcmp(cmd[i], "ss") == 0)
+			ft_swap_list(*arra, 0);
+		if (ft_strcmp(cmd[i], "sb") == 0 || ft_strcmp(cmd[i], "ss") == 0)
+			ft_swap_list(*arrb, 0);
+		if (ft_strcmp(cmd[i], "ra") == 0 || ft_strcmp(cmd[i], "rr") == 0)
+			ft_round_list(arra, 0);
+		if (ft_strcmp(cmd[i], "rb") == 0 || ft_strcmp(cmd[i], "rr") == 0)
+			ft_round_list(arrb, 0);
+		if (ft_strcmp(cmd[i], "rrb") == 0 || ft_strcmp(cmd[i], "rrr") == 0)
+			ft_revers_round_list(arrb, 0);
+		if (ft_strcmp(cmd[i], "rra") == 0 || ft_strcmp(cmd[i], "rrr") == 0)
+			ft_revers_round_list(arra, 0);
+		if (ft_strcmp(cmd[i], "pa") == 0)
+			ft_push_list(arrb, arra, 0);
+		if (ft_strcmp(cmd[i], "pb") == 0)
+			ft_push_list(arra, arrb, 0);
+		i++;
+	}
+}
+
+
 
 
 int		main(int argc, char **argv)
@@ -473,62 +533,64 @@ int		main(int argc, char **argv)
 	//argc = 10;
 
 
-	char **arv;
+	//char **arv;
+	//int *arr;
+
 	int *arr;
-	arv = open_and_read_command("arr.txt");
-	arr = ft_arr_int_from_str(arv, &argc);
-	if (ft_have_repeat_num(arr, argc))
-		ft_error();
+	t_elem *arra;
+	t_elem *arrb;
+
+	if (argc == 1)
+		return (0);
+	if (!(arr = ft_valid_arr(&argc, argv)))
+		ft_error(0);
+
+
+	//arv = open_and_read_command("arr.txt");
+	//arr = ft_arr_int_from_str(arv, &argc);
+	//if (ft_have_repeat_num(arr, argc))
+	//	ft_error(0);
 /*
 	int arr[] = {2,1,3,6,5,8};
 	argc = 6;
 */
 
-	t_elem *arra;
-	t_elem *arrb;
-
+	if (ft_have_repeat_num(arr, argc))
+	{
+		free(arr);
+		ft_error(0);
+	}
 
 	arra = ft_create_lists(arr, argc);
 	arrb = NULL;
+
+	free(arr);
+
+	if (!arra)
+		ft_error(0);
+
 
 
 
 	///checker
 	char **cmd;
-	int i = 0;
+
 
 	cmd = open_and_read_command("command.txt");
 	if (ft_not_valid_command(cmd))
-		ft_error();
-	while (cmd && cmd[i])
-	{
-		printf("%d__%s\n", i, cmd[i]);
-		if (ft_strcmp(cmd[i], "sa") == 0 || ft_strcmp(cmd[i], "ss") == 0)
-			ft_swap_list(arra, 0);
-		if (ft_strcmp(cmd[i], "sb") == 0 || ft_strcmp(cmd[i], "ss") == 0)
-			ft_swap_list(arrb, 0);
-		if (ft_strcmp(cmd[i], "ra") == 0 || ft_strcmp(cmd[i], "rr") == 0)
-			ft_round_list(&arra, 0);
-		if (ft_strcmp(cmd[i], "rb") == 0 || ft_strcmp(cmd[i], "rr") == 0)
-			ft_round_list(&arrb, 0);
-		if (ft_strcmp(cmd[i], "rrb") == 0 || ft_strcmp(cmd[i], "rrr") == 0)
-			ft_revers_round_list(&arrb, 0);
-		if (ft_strcmp(cmd[i], "rra") == 0 || ft_strcmp(cmd[i], "rrr") == 0)
-			ft_revers_round_list(&arra, 0);
-		if (ft_strcmp(cmd[i], "pa") == 0)
-			ft_push_list(&arrb, &arra, 0);
-		if (ft_strcmp(cmd[i], "pb") == 0)
-			ft_push_list(&arra, &arrb, 0);
-		ft_print_list2(arra, 'a');
-		ft_print_list2(arrb, 'b');
-		i++;
-	}
+		ft_error(0);
+
+	//	printf("%d__%s\n", i, cmd[i]);
+	ft_use_instruction(cmd, &arra, &arrb);
+	//	ft_print_list2(arra, 'a');
+	//	ft_print_list2(arrb, 'b');
+
 
 
 	ft_print_list(arra, 'a');
 	ft_print_list(arrb, 'b');
 
-	printf("строк - %d\n", i);
+	//printf("строк - %d\n", i);
 	if (ft_is_sorted(arra) && !arrb)
 		printf("ОК\n");
 	else
