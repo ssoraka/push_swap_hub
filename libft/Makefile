@@ -13,6 +13,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -c
 NAME = libft.a
+HEADER = .
 SRC = ft_abs.c \
 ft_atoi.c \
 ft_bzero.c \
@@ -89,8 +90,11 @@ ft_ltoa.c \
 ft_strupcase.c \
 ft_strlowcase.c \
 ft_max.c \
-ft_min.c
+ft_min.c \
+ft_swap.c
 OBJS = $(SRC:.c=.o)
+
+.PHONY: clean all fclean re
 
 all: $(NAME)
 
@@ -98,7 +102,7 @@ $(NAME): $(OBJS)
 	@ar rc $(NAME) $(OBJS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $< -o $@
+	@$(CC) $(CFLAGS) $< -o $@ -I $(HEADER)
 
 clean:
 	@rm -rf $(OBJS)

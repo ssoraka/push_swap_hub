@@ -24,7 +24,7 @@ int		**ft_int_arr_new(int row, int column)
 	{
 		if ((tab[i] = (int *)ft_memalloc(sizeof(*tab) * column)) == NULL)
 		{
-			ft_int_arr_free(tab, i - 1);
+			ft_int_arr_free(&tab, i - 1);
 			return (0);
 		}
 		i++;

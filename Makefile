@@ -10,27 +10,53 @@
 #                                                                              #
 #******************************************************************************#
 
-NAME1 = main
-NAME2 = libftprintf.a
-SRC1 = /Users/ssoraka/Desktop/days/Libft/libft/libft.a
-SRC2 = /Users/ssoraka/Desktop/days/Libft/libft/*.o
+CC = gcc
+CFLAGS = -Wall -Wextra -Werror
+CHECKER = checker
+PUSHSWAP = push_swap
+LIB = $(LIBSRC)libft.a
+HEADER = ./includes/
+LIBSRC = ./libft/
+SRC1 = ./sources/
+SRC = command_push.c \
+command_swap_rot.c \
+is_sorted.c \
+lists.c \
+min_med_max.c \
+opt_rotation.c \
+print.c \
+validation.c
 
-all:
-	gcc -o $(NAME1) swap.c libft.a
-	@/Users/ssoraka/Desktop/days/Libft/help_mat/clean
-	./$(NAME1)
+OBJS = $(SRC:.c=.o)
 
-go:
-	@gcc -c upravlenie.c ldtoa3.c
-	@ar rc  $(NAME2) $(SRC2) upravlenie.o ldtoa3.o
+.PHONY: clean all fclean re
+
+all: $(CHECKER) $(PUSHSWAP)
+
+$(CHECKER): $(LIB) $(OBJS) $(CHECKER).o
+	$(CC) $(CFLAGS) -o $(CHECKER) $(CHECKER).o $(OBJS) $(LIB)
+
+$(PUSHSWAP): $(LIB) $(OBJS) $(PUSHSWAP).o
+	$(CC) $(CFLAGS) -o $(PUSHSWAP) $(PUSHSWAP).o $(OBJS) $(LIB)
+
+$(LIB):
+	@make lib_refresh
+
+%.o: $(SRC1)%.c
+	$(CC) $(CFLAGS) -c $< -I $(HEADER) -I $(LIBSRC)
+
+lib_refresh:
+	make -C $(LIBSRC)
 
 norm:
 	norminette -R CheckForbiddenSourceHeader
 
 clean:
-	rm -rf *.o
+	rm -rf $(OBJS) $(PUSHSWAP).o $(CHECKER).o
+	@make -C $(LIBSRC) clean
 
 fclean: clean
-	rm -rf *.o
+	@rm -rf $(PUSHSWAP) $(CHECKER)
+	make -C $(LIBSRC) fclean
 
 re: fclean all

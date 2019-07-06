@@ -12,17 +12,18 @@
 
 #include "libft.h"
 
-void	ft_str_arr_free(char **str)
+void	ft_str_arr_free(char ***str)
 {
 	int		n;
 
 	n = 0;
-	if (str == 0)
+	if (str == 0 || *str == 0)
 		return ;
-	while (str[n])
+	while ((*str)[n])
 	{
-		free(str[n]);
+		free((*str)[n]);
 		n++;
 	}
-	free(str);
+	free(*str);
+	*str = NULL;
 }

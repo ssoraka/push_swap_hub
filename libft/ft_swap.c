@@ -1,33 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_str_arr_new.c                                   :+:      :+:    :+:   */
+/*   ft_swap.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ssoraka <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/04/26 10:24:21 by ssoraka           #+#    #+#             */
-/*   Updated: 2019/04/26 10:24:21 by ssoraka          ###   ########.fr       */
+/*   Created: 2019/06/30 17:50:13 by ssoraka           #+#    #+#             */
+/*   Updated: 2019/06/30 17:51:27 by ssoraka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-char	**ft_str_arr_new(int row, int column)
+void	ft_swap(int *a, int *b)
 {
-	int		i;
-	char	**str;
+	int temp;
 
-	i = 0;
-	if ((str = (char**)ft_memalloc(sizeof(str) * (row + 1))) == NULL)
-		return (0);
-	while (i < row)
-	{
-		if ((str[i] = ft_strnew(column)) == NULL)
-		{
-			ft_str_arr_free(&str);
-			return (0);
-		}
-		i++;
-	}
-	return (str);
+	if (!a || !b)
+		return ;
+	temp = *a;
+	*a = *b;
+	*b = temp;
 }

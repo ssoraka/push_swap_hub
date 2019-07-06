@@ -56,9 +56,9 @@ char		*ft_bytes_to_bits(char *c, int n, char *separator)
 		str = ft_strjoin_free(temp2, temp1, 1, 1);
 		temp1 = str;
 		if (i < n)
-			str = ft_strjoin(temp1, separator);
+			str = ft_strjoin(str, separator);
 		else
-			temp1 = NULL;
+			str = ft_strjoin(str, "\n");
 		free(temp1);
 	}
 	return (str);

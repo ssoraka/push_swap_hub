@@ -1,33 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_str_arr_new.c                                   :+:      :+:    :+:   */
+/*   ft_pushswap_struct.h                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ssoraka <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/04/26 10:24:21 by ssoraka           #+#    #+#             */
-/*   Updated: 2019/04/26 10:24:21 by ssoraka          ###   ########.fr       */
+/*   Created: 2019/05/22 13:13:28 by ssoraka           #+#    #+#             */
+/*   Updated: 2019/05/22 13:13:28 by ssoraka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#ifndef FT_PUSHSWAP_STRUCT_H
+# define FT_PUSHSWAP_STRUCT_H
 
-char	**ft_str_arr_new(int row, int column)
+typedef struct		s_elem
 {
-	int		i;
-	char	**str;
+	int				value;
+	int				medium_value;
+	int				min_value;
+	int				max_value;
+	struct s_elem	*next;
+	struct s_elem	*prev;
+}					t_elem;
 
-	i = 0;
-	if ((str = (char**)ft_memalloc(sizeof(str) * (row + 1))) == NULL)
-		return (0);
-	while (i < row)
-	{
-		if ((str[i] = ft_strnew(column)) == NULL)
-		{
-			ft_str_arr_free(&str);
-			return (0);
-		}
-		i++;
-	}
-	return (str);
-}
+#endif
