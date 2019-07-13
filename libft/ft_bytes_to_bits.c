@@ -15,20 +15,20 @@
 /*
 **	функция возвращает содержимое переменной var
 **	в виде строки битов для вывода
-**	ft_putstr(ft_bytes_to_bits((char *)(&var), sizeof(var), "__"));
+**	ft_putendl(ft_bytes_to_bits((void *)(&var), sizeof(var), "__"));
 **	первый аргумент - указатель на 1-ый байт
 **	второй - количество байт
 **	третий - строка для отображения разделителя между байтами
 */
 
-static char	*ft_byte_to_bits(char c)
+static int	ft_byte_to_bits(char *str, char c)
 {
 	unsigned char	chr;
-	char			*str;
 	int				i;
 
 	i = 0;
-	str = ft_strnew(8);
+	if (str == NULL)
+		return (FAIL);
 	chr = (unsigned char)c;
 	while (i < 8)
 	{
@@ -36,30 +36,33 @@ static char	*ft_byte_to_bits(char c)
 		chr = chr >> 1;
 		i++;
 	}
-	return (str);
+	return (SUCCESS);
 }
 
-char		*ft_bytes_to_bits(char *c, int n, char *separator)
+char		*ft_bytes_to_bits(void *ptr, int n, char *separator)
 {
 	char	*str;
-	char	*temp1;
-	char	*temp2;
+	char	*c;
+	int		byte;
 	int		i;
 
 	i = 0;
-	str = ft_strnew(0);
-	while (i < n)
+	c = (char *)ptr;
+	if (c == NULL || separator == NULL || n == 0)
+		return (NULL);
+	byte = 8 + ft_strlen(separator);
+	str = ft_strnew(n * 8 + (n - 1) * ft_strlen(separator));
+	while (n > 0 && str)
 	{
+		if (ft_byte_to_bits(str + i, *(c + n - 1)) == FAIL)
+		{
+			free(str);
+			return (NULL);
+		}
+		if (n > 1)
+			str = ft_strcat(str, separator);
+		i = i + byte;
 		n--;
-		temp2 = str;
-		temp1 = ft_byte_to_bits(*(c + n));
-		str = ft_strjoin_free(temp2, temp1, 1, 1);
-		temp1 = str;
-		if (i < n)
-			str = ft_strjoin(str, separator);
-		else
-			str = ft_strjoin(str, "\n");
-		free(temp1);
 	}
 	return (str);
 }

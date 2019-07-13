@@ -34,7 +34,7 @@ OBJS = $(SRC:.c=.o)
 all: $(CHECKER) $(PUSHSWAP)
 
 $(CHECKER): $(LIB) $(OBJS) $(CHECKER).o
-	$(CC) $(CFLAGS) -o $(CHECKER) $(CHECKER).o $(OBJS) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $^
 
 $(PUSHSWAP): $(LIB) $(OBJS) $(PUSHSWAP).o
 	$(CC) $(CFLAGS) -o $(PUSHSWAP) $(PUSHSWAP).o $(OBJS) $(LIB)
